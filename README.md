@@ -1,2 +1,2 @@
 # cesa
-The generation of counterfactual explanations in the context of sentiment analysis
+The generation of **c**ounterfactual **e**xplanations in the context of **s**entiment **a**nalysis
