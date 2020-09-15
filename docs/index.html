@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Counterfactual Explorer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+          crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"
+            integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!--        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/cosmo/bootstrap.min.css"-->
+    <!--              integrity="sha384-5QFXyVb+lrCzdN228VS3HmzpiE7ZVwLQtkt+0d9W43LQMzz4HBnnqvVxKg6O+04d" crossorigin="anonymous">-->
+
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap" rel="stylesheet">
+    <style>
+        .toc_link {
+            /*color: white;*/
+            margin-right: 3px;
+        }
+
+        .gradword {
+            padding: 3px;
+            display: inline-block;
+        }
+
+        .hlword {
+            padding: 2px;
+            display: inline-block;
+        }
+
+        #toc {
+            overflow: scroll;
+            height: 100%;
+            text-align: justify;
+        }
+
+        #content-scroll-wrap {
+            position: relative;
+            height: 100%;
+            min-height: 111px;
+        }
+
+        #content-scroll {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            overflow: auto;
+        }
+
+        #sentence_viewer {
+            background: white;
+            min-height: 200px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .card-body {
+            padding: 10px;
+        }
+
+        .search_label {
+            font-size: 12pt;
+            padding-left: 5px;
+        }
+
+        .right_to_example {
+            margin-top: -10px;
+            float: right;
+            font-size: 70%;
+            color: gray;
+        }
+
+        .algo_header {
+            font-size: 120%;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .spinner {
+            position: absolute;
+            margin: auto;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .dsbutton {
+            margin: 10px;
+        }
+
+
+    </style>
+</head>
+
+<body>
+<!--<header class="center" style="padding:60px 16px; background: rgb(66, 135, 245)">-->
+<header class="center" style="padding-top: 30px; padding-bottom: 30px">
+    <h1 class="text-center pdf_remove">Explore counterfactual explanations in sentiment analysis</h1>
+    <h4 class="text-center pdf_remove">Find more information <a href="https://github.com/Crisix/cesa">here <i class="fa fa-github"></i></a></h4>
+</header>
+
+<div>
+    <div class="container-fluid">
+        <div class="row" style="padding-left: 10px; padding-right: 10px">
+            <div id="sentence_selector" class="col-lg-3 d-none pdf_remove" style="padding: 5px">
+                <div class="card no-gutters">
+                    <div class="card-header">
+                        Selection
+                        <i class="fa fa-random" style="float: right; padding-top: 5px; cursor: pointer" onclick="select_random();"></i>
+                    </div>
+                    <div class="card-body no-gutters">
+                        <div>
+                            <!-- Sentence length-->
+                            <div style="margin-bottom: 15px">
+                                <div>
+                                    <label class="search_label" for="sentence_length">Sentence Length:</label>
+                                    <input type="text" id="sentence_length" readonly style="border:0; color:#f6931f; font-weight:bold;">
+                                </div>
+                                <div style="padding-left: 10px; padding-right: 10px">
+                                    <div id="sentence_length_slider"></div>
+                                </div>
+                            </div>
+                            <!-- Perplexity change -->
+                            <div style="margin-bottom: 15px">
+                                <div>
+                                    <label class="search_label" for="perplexity_change">Perplexity change:</label>
+                                    <input type="text" id="perplexity_change" readonly style="border:0; color:#f6931f; font-weight:bold;">
+                                </div>
+                                <div style="padding-left: 10px; padding-right: 10px">
+                                    <div id="perplexity_change_slider"></div>
+                                </div>
+                            </div>
+                            <!-- different examples -->
+                            <div style="margin-left: 4px">
+                                <input type="checkbox" id="check_different_examples" onclick='refresh_toc();'>
+                                <label class="search_label" for="check_different_examples">Different results between the algorithms.</label>
+                            </div>
+                            <!-- highlight per sentence -->
+                            <div style="margin-left: 4px">
+                                <input type="checkbox" id="highlight_per_sentence" onclick='refresh_toc();'>
+                                <label class="search_label" for="highlight_per_sentence">Highlight gradient per sentence.</label>
+                            </div>
+                        </div>
+                        <br/>
+                        <div id="content-scroll-wrap">
+                            <div id="content-scroll">
+                                <div id="toc"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7" id="col7bigger" style="padding: 5px">
+                <div id="sentence_card" class="card d-none">
+                    <div class="card-body">
+                        <div id="sentence_viewer" style="text-align: center;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2" id="col2bigger" style="padding: 5px">
+                <div id="sentence_properties"></div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div id="result_viewer"></div>
+    </div>
+
+    <div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <h4 style="padding-top: 20px; padding-bottom: 15px">
+                        Please choose a dataset to explore:
+                    </h4>
+                    <div style="padding-bottom: 20px">
+                        <button type="button" id="sst2" onclick="load_dataset('sst2')" style="width: 200px; font-size: 150%" class="btn btn-lg btn-primary dsbutton">SST-2</button>
+                        <button type="button" id="imdb" onclick="load_dataset('imdb')" style="width: 200px; font-size: 150%" class="btn btn-lg btn-primary dsbutton">IMDb</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="height: 400px"></div>
+</div>
+
+
+<script>
+
+    let PDF_MODE = false
+    if (PDF_MODE) {
+        $(".pdf_remove").remove()
+    }
+
+    $('#staticBackdrop').modal('show');
+
+    let dataset = [];
+    let SELECTED_D = -1;
+    let algorithms = ["BASE", "ST", "MBS+ST", "MBS"]
+
+    function load_dataset(name) {
+        let other = name === "sst2" ? "imdb" : "sst2"
+        // $(`#${other}`).animate({backgroundColor: '#6c757d'}, 'fast');
+        $(`#${other}`).prop("disabled", true);
+        $(`#${name}`).html(`<div class="spinner-grow" style="width: 2rem; height: 2rem;" role="status"> <span class="sr-only">Loading...</span> </div>`)
+
+        $.ajax({
+            type: 'GET',
+            url: `${name}_data.json`,
+            dataType: 'json',
+            success: function (data) {
+                dataset = data;
+                initialize_filters();
+                select_random()
+                refresh_toc();
+                $('#staticBackdrop').modal('hide');
+                $('#sentence_selector').removeClass("d-none")
+                $('#sentence_card').removeClass("d-none")
+            }
+        });
+
+    }
+
+
+    function escapeHtml(unsafe) {
+        // this is the way
+        // https://stackoverflow.com/a/6234804
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function getRandomInt(max) {
+        return Math.floor(Math.random() * Math.floor(max));
+    }
+
+    function initialize_filters() {
+
+        // Sentence Length
+        let min_sen_len = 1000;
+        let max_sen_len = -1000;
+        for (let i = 0; i < dataset.length; i++) {
+            max_sen_len = Math.max(dataset[i].sentence.length, max_sen_len)
+            min_sen_len = Math.min(dataset[i].sentence.length, min_sen_len)
+        }
+        let sentenceLengthSlider = $("#sentence_length_slider");
+        sentenceLengthSlider.slider({
+            range: true,
+            min: min_sen_len,
+            max: max_sen_len,
+            step: 1,
+            values: [min_sen_len, max_sen_len],
+            change: refresh_toc,
+            slide: function (event, ui) {
+                $("#sentence_length").val(ui.values[0] + " - " + ui.values[1]);
+            },
+
+        });
+        $("#sentence_length").val(sentenceLengthSlider.slider("values", 0) + " - " + sentenceLengthSlider.slider("values", 1));
+
+        // Perplexity range slider
+        let min_change = +1000000;
+        let max_change = -1000000;
+        for (let i = 0; i < dataset.length; i++) {
+            for (let ai = 0; ai < algorithms.length; ai++) {
+                for (let chgrp_i = 0; chgrp_i < dataset[i][algorithms[ai]].examples.length; chgrp_i++) {
+                    for (let ex_i = 0; ex_i < dataset[i][algorithms[ai]].examples[chgrp_i].length; ex_i++) {
+                        let ppl = dataset[i][algorithms[ai]].examples[chgrp_i][ex_i].perplexity;
+                        let ppl_diff = ppl - dataset[i].original_ppl;
+                        max_change = Math.max(ppl_diff, max_change)
+                        min_change = Math.min(ppl_diff, min_change)
+                    }
+                }
+            }
+        }
+        min_change = parseFloat(min_change.toFixed(2));
+        max_change = parseFloat(max_change.toFixed(2));
+        let perplexityChangeSlider = $("#perplexity_change_slider");
+        perplexityChangeSlider.slider({
+            range: true,
+            min: min_change,
+            max: max_change,
+            step: 0.01,
+            values: [min_change, max_change],
+            change: refresh_toc,
+            slide: function (event, ui) {
+                $("#perplexity_change").val(ui.values[0] + " - " + ui.values[1]);
+            },
+        });
+        $("#perplexity_change").val(perplexityChangeSlider.slider("values", 0) + " - " + perplexityChangeSlider.slider("values", 1));
+
+        // Gradient Highlight per sentence change
+        $('#highlight_per_sentence').change(function () {
+            select_cf(SELECTED_D);
+        });
+    }
+
+    function gen_markchanges_html(d, example_list) {
+        let ex = example_list[0]
+        let example_html = []
+        for (let wi = 0; wi < d.sentence.length; wi++) {
+            let ex_word = ex.sentence[wi]
+            let org_word = d.sentence[wi]
+            let tooltip_info = ""
+            let tooltip_val = []
+            let style = ""
+            let classes = ""
+            if (d.sentence[wi] !== ex.sentence[wi]) {
+                style = `color:red;`
+                classes = "font-weight-bold"
+                for (let other_e_idx = 0; other_e_idx < example_list.length; other_e_idx++) {
+                    let oword = example_list[other_e_idx].sentence[wi]
+                    if (oword !== org_word) {
+                        tooltip_val.push(oword)
+                    }
+                }
+                let other_words = tooltip_val.length > 0 ? `<p> Other: ${escapeHtml(tooltip_val.join(", "))} </p>` : ""
+                tooltip_val = `Original: ${escapeHtml(org_word)} ${other_words}`;
+                tooltip_info = `data-toggle="tooltip" title="${tooltip_val}" data-html="true"`
+            }
+            example_html.push(`<span class="hlword ${classes}" style='${style}' ${tooltip_info}>${ex_word}</span>`);
+        }
+        return example_html.join("")
+    }
+
+    function gen_algorithm_cards_html(d) {
+        let alg_card = []
+
+        for (let alg_idx = 0; alg_idx < algorithms.length; alg_idx++) {
+            let alg = algorithms[alg_idx]
+            alg_card.push(`<div class='col-lg-3 col-md-6' style="padding: 5px">
+                                <div class='card'>
+                                    <div class="card-header text-center algo_header font-weight-bold">${alg}</div>
+                                    <div class='card-body'>
+                                    <ul class="list-group list-group-flush">`)
+
+            let examples = d[alg].examples //.length > 0 ? d[alg]["examples"] : [[]]
+            for (let ex_l = 0; ex_l < examples.length; ex_l++) {
+                let ppl = examples[ex_l][0].perplexity.toFixed(2);
+                let pol = examples[ex_l][0].cls[1].toFixed(2);
+                alg_card.push(`<li class="list-group-item" style="padding-left: 0; padding-right: 0">
+                                    <h4 style="width: 100%">Example ${ex_l + 1}
+                                        <span class="right_to_example">
+                                            Perplexity: ${ppl}<br/>
+                                            Polarity: ${pol}<br/>
+                                        </span></h4>
+                                    ${gen_markchanges_html(d, examples[ex_l])}
+                                 </li>
+
+                    `);
+            }
+
+            if (examples.length === 0) {
+                alg_card.push("The counterfactual example generation was not successful for this sentence!")
+            }
+
+            alg_card.push("</ul></div></div></div>");
+        }
+        return alg_card.join("")
+    }
+
+    function gen_gradient_highlight_html(d) {
+        let result = ["<h4 style='margin-top: -8px'>Original text:</h4>"];
+        let per_sentence = $("#highlight_per_sentence").is(":checked");
+        console.log("PER SENTENCE: ", per_sentence)
+        for (let wi = 0; wi < d.sentence.length; wi++) {
+            let word = d.sentence[wi];
+            let bg = null;
+            let fg = null;
+            if (per_sentence) {
+                bg = d.background_per_sen[wi];
+                fg = d.foreground_per_sen[wi];
+            } else {
+                bg = d.background[wi];
+                fg = d.foreground[wi];
+            }
+            let style = `background: rgb(${bg}); color:rgb(${fg})`
+            result.push(`<span class="gradword" style='${style}'>${word}</span>`)
+        }
+        return result.join("")
+    }
+
+    function select_cf(ds_idx) {
+        console.log(`Selecting: ${ds_idx}`)
+        SELECTED_D = ds_idx;
+        console.log(ds_idx)
+
+        let d = dataset[ds_idx]
+
+        let resultViewer = $("#result_viewer");
+        resultViewer.empty()
+        resultViewer.append(`<div class='row' style="padding-left: 10px; padding-right: 10px">
+                                ${gen_algorithm_cards_html(d)}
+                             </div>`)
+
+        let sentenceViewer = $("#sentence_viewer");
+        sentenceViewer.empty()
+        sentenceViewer.append(gen_gradient_highlight_html(d))
+
+        let sentenceProperties = $("#sentence_properties");
+        sentenceProperties.empty()
+        sentenceProperties.append(`
+            <table class="table">
+                <tbody>
+                    <tr> <td>Sentence</td><td> ${ds_idx + 1}</td> </tr>
+                    <tr> <td>Positivity</td><td> ${d.original_cls[1].toFixed(2)}</td> </tr>
+                    <tr> <td>Wanted Positivity</td><td> ${d.wanted_cls[1].toFixed(2)}</td> </tr>
+                    <tr> <td>Perplexity</td><td> ${d.original_ppl.toFixed(2)}</td> </tr>
+                    <tr> <td>Words</td><td> ${d.sentence.length}</td> </tr>
+                    <tr> <td></td> <td></td> </tr>
+                </tbody>
+            </table>`)
+
+        /**
+         <h3>Sentence ${ds_idx + 1}</h3>
+         <h5>Positivity: ${d.original_cls[1].toFixed(2)}</h5>
+         <h5>Wanted Positivity: ${d.wanted_cls[1].toFixed(2)}</h5>
+         <h5>Perplexity: ${d.original_ppl.toFixed(2)}</h5>
+         <h5>Words: ${d.sentence.length}</h5>
+
+         */
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    }
+
+    function select_random() {
+        select_cf(getRandomInt(dataset.length));
+        if (PDF_MODE) {
+            // select_cf(419 - 1);
+        }
+    }
+
+    function generate_toc_html() {
+        let sentenceLengthSlider = $("#sentence_length_slider");
+        let min_sen_len = sentenceLengthSlider.slider("values", 0);
+        let max_sen_len = sentenceLengthSlider.slider("values", 1);
+
+        let perplexityChangeSlider = $("#perplexity_change_slider");
+        let min_ppl = perplexityChangeSlider.slider("values", 0);
+        let max_ppl = perplexityChangeSlider.slider("values", 1);
+
+        let check_diff_exs = $("#check_different_examples").is(":checked");
+
+        let toc_result = ""
+        for (let i = 0; i < dataset.length; i++) {
+            let examples_are_same = true;
+
+            // var now = new Date().getTime();
+            // while (new Date().getTime() < now + 10) { /* do nothing */
+            // }
+
+            // Different results between algorithms
+            if (check_diff_exs) {
+                examples_are_same = false;
+                let lens = []
+                for (let alg_idx = 0; alg_idx < algorithms.length; alg_idx++) {
+                    lens.push(dataset[i][algorithms[alg_idx]]["examples"].length)
+                }
+                let all_same = new Set(lens).size === 1;
+                if (!all_same) {
+                    examples_are_same = true;
+                }
+            }
+
+            // Perplexity range
+            let one_in_ppl_range = false;
+            for (let ai = 0; ai < algorithms.length; ai++) {
+                for (let chgrp_i = 0; chgrp_i < dataset[i][algorithms[ai]].examples.length; chgrp_i++) {
+                    for (let ex_i = 0; ex_i < dataset[i][algorithms[ai]].examples[chgrp_i].length; ex_i++) {
+                        let ppl = dataset[i][algorithms[ai]].examples[chgrp_i][ex_i].perplexity;
+                        let ppl_change = ppl - dataset[i].original_ppl;
+                        if (ppl_change >= min_ppl && ppl_change <= max_ppl) {
+                            one_in_ppl_range = true;
+                        }
+                    }
+                }
+            }
+
+            if (dataset[i].sentence.length >= min_sen_len && dataset[i].sentence.length <= max_sen_len
+                && one_in_ppl_range
+                && examples_are_same) {
+                toc_result += `<a class="toc_link font-weight-bold" onclick="select_cf(${i})"> #${i + 1} </a>`;
+            }
+        }
+        return toc_result
+    }
+
+    async function refresh_toc() {
+
+        $("#toc").empty()
+        $("#toc").html(`<div style="text-align: center;">
+                            <div class="spinner-grow center" style="width: 5rem; height: 5rem;" role="status"> <span class="sr-only">Loading...</span> </div>
+                        </div> `)
+        setTimeout(function () {
+            let toc = generate_toc_html();
+            $("#toc").html(toc)
+        }, 500);
+
+    }
+
+</script>
+
+</body>
+</html>
