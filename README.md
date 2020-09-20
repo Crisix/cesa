@@ -10,7 +10,6 @@ The fragile plausibility of texts also represents a hurdle to be overcome here, 
 The task chosen here is the sentiment analysis, in which the texts are classified based on the polarity (positivity / negativity of the text).
 For a given text an alternative text is to be found, which is still plausible and as similar as possible to the original text, while at the same time the polarity changes in a certain direction.
 
-More details can be found in the [thesis.pdf](thesis.pdf) TODO.
 
 ## Usage
 
